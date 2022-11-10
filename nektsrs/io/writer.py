@@ -8,7 +8,7 @@ class Writer:
     def __init__(self, locs: np.ndarray):
         self.locs = locs
 
-    def write(self, fname: str, wdsize: int = 8, emode: str = "<"):
+    def write(self, fname: str = "int_pos", wdsize: int = 8, emode: str = "<"):
         npoints = self.locs.shape[0]
 
         outfile = open(fname, "wb")

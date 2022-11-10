@@ -27,7 +27,7 @@ class TimeSeries:
         self.sort = sort
 
         self.id_list = np.array([data[i].id for i in range(npoints)])
-        self.location = np.vstack(data[i].pos for i in range(npoints))
+        self.location = np.vstack([data[i].pos for i in range(npoints)])
 
         if sort:
             self.location = self.location[self.id_list]
@@ -60,7 +60,7 @@ class TimeSeries:
         return np.frombuffer(llist, dtype=emode + realtype, count=nvar)
 
     @classmethod
-    def read(cls, fname: str):
+    def read(cls, fname: str, sort: bool = True):
         """Read data from an interpolation file"""
 
         infile = open(fname, "rb")
@@ -115,7 +115,7 @@ class TimeSeries:
                 for k in range(nfields):
                     data[i].data[j][k] = fld[k]
 
-        return cls(data, timelist, ldim, time, npoints, nfields, nt)
+        return cls(data, timelist, ldim, time, npoints, nfields, nt, sort)
 
     def collate_data(self):
         self.data = np.stack(
