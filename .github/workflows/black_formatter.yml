@@ -1,8 +1,12 @@
-name: black-action
+# .github/workflows/black.yaml
+name: Lint
+
 on: [push, pull_request]
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: pfs/black@stable
+      - uses: actions/setup-python@v2
+      - uses: psf/black@22.10.0  # change this
