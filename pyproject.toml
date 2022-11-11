@@ -1,3 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nektsrs"
+version = "0.0.1"
+dependencies = [
+    "numpy",
+    "h5py",
+    "pre-commit"
+]
+license = "MIT"
+authors = ["Timofey Mukha"]
+repository = "https://github.com/timofeymukha/nektsrs"
+
+
 [tool.black]
 line-length = 79
 inlcude = '\.pyi?$'
