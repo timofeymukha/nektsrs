@@ -1,4 +1,5 @@
 import numpy as np
+import h5py
 import struct
 from typing import List
 
@@ -9,29 +10,26 @@ class TimeSeries:
     def __init__(
         self,
         data: List,
-        timelist: List,
+        t: List,
         ldim: int,
-        time: float,
-        npoints: int,
+        writetime: float,
         nfields: int,
-        nt: int,
         sort: bool = True,
     ) -> None:
         self.data = data
-        self.timelist = np.array(timelist)
+        self.t = np.array(t)
         self.ldim = ldim
-        self.time = time
-        self.npoints = npoints
+        self.writetime = writetime
+        self.npoints = len(data)
         self.nfields = nfields
-        self.nt = nt
+        self.nt = self.t.size
         self.sort = sort
 
-        self.id_list = np.array([data[i].id for i in range(npoints)])
-        self.location = np.vstack([data[i].pos for i in range(npoints)])
-
         if sort:
-            self.location = self.location[self.id_list]
             self.data.sort(key=lambda item: item.id)
+
+        self.locs = np.vstack([data[i].pos for i in range(self.npoints)])
+        self.id_list = np.array([data[i].id for i in range(self.npoints)])
 
     @classmethod
     def read_int(cls, infile, emode: str, nvar: int) -> List[int]:
@@ -115,12 +113,26 @@ class TimeSeries:
                 for k in range(nfields):
                     data[i].data[j][k] = fld[k]
 
-        return cls(data, timelist, ldim, time, npoints, nfields, nt, sort)
+        return cls(data, timelist, ldim, time, nfields, sort)
 
-    def collate_data(self):
+    def collate_data(self) -> None:
         self.data = np.stack(
             [self.data[i].data for i in range(self.npoints)], axis=2
         )
+
+    def save(self, filepath: str) -> None:
+        f = h5py.File(filepath, "w")
+        f.create_dataset("locs", data=self.locs)
+        f.create_dataset("t", data=self.t)
+        f.create_dataset("data", data=self.data)
+
+        f.attrs["writetime"] = self.writetime
+        f.attrs["nfields"] = self.nfields
+        f.attrs["npoints"] = self.npoints
+        f.attrs["ldim"] = self.ldim
+        f.attrs["nt"] = self.nt
+
+        f.close()
 
 
 class Point:

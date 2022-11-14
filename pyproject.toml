@@ -11,9 +11,6 @@ dependencies = [
     "scipy",
     "pre-commit"
 ]
-license = "MIT"
-authors = ["Timofey Mukha"]
-repository = "https://github.com/timofeymukha/nektsrs"
 
 
 [tool.black]
