@@ -10,13 +10,14 @@ __all__ = ["FileCombiner"]
 class FileCombiner:
     def __init__(self, basename: str, basepath: Optional[str] = "") -> None:
 
-        datafiles = glob.glob(
-            join(
-                basepath, "pts" + basename + "[0-1].f[0-9][0-9][0-9][0-9][0-9]"
-            )
+        search_string = join(
+            basepath, "pts" + basename + "[0-1].f[0-9][0-9][0-9][0-9][0-9]"
         )
+        datafiles = glob.glob(search_string)
 
         print(f"Found {len(datafiles)} datafiles")
+        if len(datafiles) == 0:
+            raise FileExistsError("Could not find any data!")
 
         datasets = [TimeSeries.read(i) for i in datafiles]
 
@@ -30,17 +31,14 @@ class FileCombiner:
 
         datasets.sort(key=lambda item: item.writetime)
 
-        self.data = (np.row_stack([i.data for i in datasets])[0],)
-        print(type(self.data), type(datasets[0].data), len(self.data))
-        print(self.data)
+        self.data = np.vstack([i.data for i in datasets])
 
-        self.t = (np.stack([i.t for i in datasets]),)
+        self.t = np.concatenate([i.t for i in datasets])
         self.timespan = np.array([self.t[0], self.t[-1]])
         self.nfields = self.data.shape[1]
         self.locs = datasets[0].locs
 
         # kill overlap values
-        idx = np.unique(self.t, return_index=True)
-        print(idx)
+        _, idx = np.unique(self.t, return_index=True)
         self.data = self.data[idx, ...]
         self.t = self.t[idx]
