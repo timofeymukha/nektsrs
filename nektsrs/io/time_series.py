@@ -33,7 +33,7 @@ class TimeSeries:
 
     @classmethod
     def read_int(cls, infile, emode: str, nvar: int) -> List[int]:
-        """Read an integer array"""
+        """Read an integer array."""
         isize = 4
         llist = infile.read(isize * nvar)
         return list(struct.unpack(emode + nvar * "i", llist))
@@ -46,7 +46,7 @@ class TimeSeries:
         wdsize: int,
         nvar: int,
     ) -> List[float]:
-        """Read a real array"""
+        """Read a real array."""
         if wdsize == 4:
             realtype = "f"
         elif wdsize == 8:
@@ -60,7 +60,6 @@ class TimeSeries:
     @classmethod
     def read(cls, fname: str, sort: bool = True):
         """Read data from an interpolation file"""
-
         infile = open(fname, "rb")
 
         header = infile.read(132).split()
@@ -116,11 +115,13 @@ class TimeSeries:
         return cls(data, timelist, ldim, time, nfields, sort)
 
     def collate_data(self) -> None:
+        """Combine data from all points in a single data array."""
         self.data = np.stack(
             [self.data[i].data for i in range(self.npoints)], axis=2
         )
 
     def save(self, filepath: str) -> None:
+        """Save the data to an hdf5 file."""
         f = h5py.File(filepath, "w")
         f.create_dataset("locs", data=self.locs)
         f.create_dataset("t", data=self.t)
