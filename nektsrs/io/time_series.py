@@ -31,16 +31,15 @@ class TimeSeries:
         self.locs = np.vstack([data[i].pos for i in range(self.npoints)])
         self.id_list = np.array([data[i].id for i in range(self.npoints)])
 
-    @classmethod
-    def read_int(cls, infile, emode: str, nvar: int) -> List[int]:
+    @staticmethod
+    def read_int(infile, emode: str, nvar: int) -> List[int]:
         """Read an integer array."""
         isize = 4
         llist = infile.read(isize * nvar)
         return list(struct.unpack(emode + nvar * "i", llist))
 
-    @classmethod
+    @staticmethod
     def read_real(
-        cls,
         infile,
         emode: str,
         wdsize: int,
