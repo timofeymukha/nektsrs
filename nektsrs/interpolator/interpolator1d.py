@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.interpolate import lagrange
 from nektsrs.grid import Grid1D, SimpleGrid1D
-from typing import Union
+from typing import Union, Dict
+
 
 __all__ = ["Interpolator1D"]
 
@@ -38,6 +39,17 @@ class Interpolator1D:
         npoly = self.lx - 1
         return i * npoly, i * npoly + self.lx
 
+    def build_polys(self, data: np.ndarray, element_ind: np.ndarray) -> Dict:
+        """Build Lagrange polynomials for elements of given indices."""
+
+        polys = dict()
+        for i, eli in enumerate(element_ind):
+            ind = self.element_gll_indices(eli)
+            polys[eli] = lagrange(
+                self.element_gll_points(eli), data[ind[0] : ind[1]]
+            )
+        return polys
+
     def interpolate(
         self, data: np.ndarray, points: Union[float, np.ndarray]
     ) -> np.ndarray:
@@ -45,7 +57,7 @@ class Interpolator1D:
 
         Parameters
         ----------
-            data: nd.array of size self.gll x nfields
+            data: 1d nd.array of size self.gll
                 The data at the points of the given grid, for several
                 fields.
 
@@ -54,21 +66,19 @@ class Interpolator1D:
 
         """
 
-        if data.shape[0] != self.gll.size:
+        if data.size != self.gll.size:
             raise ValueError("Data is of incorrect size!")
 
         if type(points) is float:
             points = points * np.ones(1)
-        values = np.zeros((points.shape[0], data.shape[1]))
+        values = np.zeros(points.shape[0])
 
         # Searches for element index where the points will lie
         element_ind = np.searchsorted(self.edges, points) - 1
 
+        polys = self.build_polys(data, np.unique(element_ind))
+
         for i, eli in enumerate(element_ind):
-            ind = self.element_gll_indices(eli)
-            poly = lagrange(
-                self.element_gll_points(eli), data[ind[0] : ind[1]]
-            )
-            values[i] = poly(points[i])
+            values[i] = polys[eli](points[i])
 
         return values
