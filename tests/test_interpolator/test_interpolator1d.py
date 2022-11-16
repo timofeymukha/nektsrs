@@ -28,16 +28,20 @@ def test_interpolator1d():
     g = SimpleGrid1D(0, 1, 5, 4)
     intp = Interpolator1D(g)
 
-    data = np.ones((g.gll.size, 1))
+    data = np.ones(g.gll.size)
     v = intp.interpolate(data, 0.1)
-
     assert_array_almost_equal([1], v[0])
 
     # linear function
-    data = g.gll[:, np.newaxis]
+    data = g.gll
     p = np.linspace(0, 0.1, 5)
     v = intp.interpolate(data, p)
+    assert_array_almost_equal(v, p)
 
-    assert_array_almost_equal(v[:, 0], p)
+    g = SimpleGrid1D(0, 12, 32, 8)
+    data = np.random.randn(g.gll.size) * np.cos(g.gll)
+    intp = Interpolator1D(g)
+    v = intp.interpolate(data, g.gll)
+    assert_array_almost_equal(v, data)
 
     pass
