@@ -3,6 +3,7 @@ from scipy.interpolate import lagrange
 from nektsrs.grid import Grid1D, SimpleGrid1D
 from typing import Union, Dict
 from nektsrs.gll import gll
+from scipy.interpolate import BarycentricInterpolator
 
 
 __all__ = ["Interpolator1D"]
@@ -12,6 +13,8 @@ class Interpolator1D:
     def __init__(self, grid: Union[Grid1D, SimpleGrid1D]) -> None:
         self.grid = grid
         self.ref_gll, _ = gll(grid.lx)
+
+        self.interpolator = BarycentricInterpolator(xi=self.ref_gll)
 
     @property
     def edges(self):
@@ -59,6 +62,7 @@ class Interpolator1D:
             ind = self.element_gll_indices(i)
             means[i] = np.mean(data[ind[0] : ind[1]])
             stdi = np.std(data[ind[0] : ind[1]])
+            # avoid division by 0 in normalization
             stds[i] = stdi if stdi != 0 else 1.0
         return means, stds
 
@@ -131,5 +135,55 @@ class Interpolator1D:
             edges = self.element_edges(eli)
             ref_p = (points[i] - edges[0]) / (edges[1] - edges[0]) * 2 - 1
             values[i] = polys[eli](ref_p) * data_stds[eli] + data_means[eli]
+
+        return values
+
+    def interpolate2(
+        self, data: np.ndarray, points: Union[float, np.ndarray]
+    ) -> np.ndarray:
+        """Interpolate to new data points given data on the grid.
+
+        Parameters
+        ----------
+            data: 1d nd.array of size self.gll
+                The data at the points of the given grid, for several
+                fields.
+
+            points: 1d nd.array
+                The points where we want the interpolated values.
+
+        """
+
+        if data.size != self.gll.size:
+            raise ValueError("Data is of incorrect size!")
+
+        if type(points) is float:
+            points = points * np.ones(1)
+        values = np.zeros(points.shape[0])
+
+        if np.max(points) > np.max(self.gll) or np.min(points) < np.min(
+            self.gll
+        ):
+            raise ValueError("Interpolation point out of bound of the mesh.")
+
+        # Searches for element index where the points will lie
+        element_ind = np.searchsorted(self.edges, points, side="left") - 1
+
+        for i, eli in enumerate(element_ind):
+            if eli < 0:
+                element_ind[i] = 0
+
+        data_means, data_stds = self.data_element_stats(data)
+
+        for i, eli in enumerate(element_ind):
+            edges = self.element_edges(eli)
+            ref_p = (points[i] - edges[0]) / (edges[1] - edges[0]) * 2 - 1
+            ind = self.element_gll_indices(eli)
+            self.interpolator.set_yi(
+                (data[ind[0] : ind[1]] - data_means[eli]) / data_stds[eli],
+            )
+            values[i] = (
+                self.interpolator(ref_p) * data_stds[eli] + data_means[eli]
+            )
 
         return values
