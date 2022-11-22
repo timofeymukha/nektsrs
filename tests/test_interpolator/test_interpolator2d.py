@@ -36,4 +36,29 @@ def test_interpolator2d_linear():
         assert_array_almost_equal(v, v1)
     #    assert_array_almost_equal(v, data)
 
+
+def test_interpolator2d_large():
+    n = 10
+    lx = 4
+    g = SimpleGrid2D(-1, 1, -1, 10, n, n, lx)
+    g1d = SimpleGrid1D(-1, 1, n, lx)
+
+    intp = Interpolator2D(g)
+    intp1d = Interpolator1D(g1d)
+
+    data = np.ones((g.gll1.size, g.gll2.size))
+
+    for i, gll1i in enumerate(g.gll1):
+        for j, gll1j in enumerate(g.gll2):
+            data[i, j] = gll1i + gll1j
+
+    x = np.linspace(-1, 1, 5)
+
+    for i, gi in enumerate(g.gll2):
+        p = np.stack((x, np.full(x.size, gi)), axis=1)
+        v = intp.interpolate(data, p)
+        v1 = intp1d.interpolate(data[:, i], x)
+        assert_array_almost_equal(v, v1)
+    #    assert_array_almost_equal(v, data)
+
     pass

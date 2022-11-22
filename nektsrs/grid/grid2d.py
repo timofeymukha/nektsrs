@@ -41,7 +41,7 @@ class Grid2D:
 
     def element_gll_indices(self, i: int, j: int):
         """Get the indces of the gll point of a particular element."""
-        if i < 0 or i > self.n2 - 1 or j < 0 or j > self.n2 - 1:
+        if i < 0 or i > self.n1 - 1 or j < 0 or j > self.n2 - 1:
             raise ValueError(f"Element index {i}, {j} is out of bounds.")
 
         npoly = self.lx - 1

@@ -112,7 +112,7 @@ class Interpolator2D:
 
         for i in range(points.shape[0]):
             eli = element_ind1[i]
-            elj = element_ind1[i]
+            elj = element_ind2[i]
             x = points[i, 0]
             y = points[i, 1]
             edges = self.grid.element_edges(eli, elj)
@@ -134,7 +134,8 @@ class Interpolator2D:
 
             self.interpolator.set_yi(f)
             values[i] = (
-                self.interpolator(ref_x) * data_stds[eli] + data_means[eli]
+                self.interpolator(ref_x) * data_stds[eli, elj]
+                + data_means[eli, elj]
             )
 
         return values
