@@ -4,33 +4,6 @@ from nektsrs.grid import SimpleGrid1D, Grid1D
 __all__ = ["SimpleGrid2D", "Grid2D"]
 
 
-class SimpleGrid2D:
-    def __init__(
-        self,
-        start1: float,
-        end1: float,
-        start2: float,
-        end2: float,
-        n1: int,
-        n2: int,
-        lx: int,
-    ) -> None:
-
-        self.start1 = start1
-        self.end1 = end1
-        self.start2 = start2
-        self.end2 = end2
-        self.n1 = n1
-        self.n2 = n2
-        self.lx = lx
-
-        g1 = SimpleGrid1D(start1, end1, n1, lx)
-        g2 = SimpleGrid1D(start2, end2, n2, lx)
-
-        gllx, glly = np.meshgrid(g1.gll, g2.gll)
-        self.gll = np.stack((gllx.flatten(), glly.flatten()), axis=1)
-
-
 class Grid2D:
     def __init__(
         self, edges1: np.ndarray, edges2: np.ndarray, lx: int
@@ -48,3 +21,50 @@ class Grid2D:
 
         gllx, glly = np.meshgrid(g1.gll, g2.gll)
         self.gll = np.stack((gllx.flatten(), glly.flatten()), axis=1)
+
+    def element_edges(self, i: int, j: int):
+        """Get the edges of a particular element.
+
+        """
+        if i < 0 or i > self.n2 - 1 or j < 0 or j > self.n2 -1:
+            raise ValueError(f"Element index {i}, {j} is out of bounds.")
+
+        return (self.edges1[i], self.edges1[i + 1],
+                self.edges2[i], self.edges2[i + 1])
+
+    def element_gll_indices(self, i: int, j: int):
+        """Get the indces of the gll point of a particular element.
+
+        """
+        if i < 0 or i > self.n2 - 1 or j < 0 or j > self.n2 -1:
+            raise ValueError(f"Element index {i}, {j} is out of bounds.")
+
+        npoly = self.lx - 1
+        return i * npoly, i * npoly + self.lx
+
+    def element_gll_points(self, i: int, j: int):
+        """Get gll point of a particular element by its index.
+
+        """
+        if i < 0 or i > self.n2 - 1 or j < 0 or j > self.n2 -1:
+            raise ValueError(f"Element index {i}, {j} is out of bounds.")
+
+        ind = self.element_gll_indices(i, j)
+        return self.gll[ind[0] : ind[1]]
+
+
+class SimpleGrid2D(Grid2D):
+    def __init__(
+            self,
+            start1: float,
+            end1: float,
+            start2: float,
+            end2: float,
+            n1: int,
+            n2: int,
+            lx: int,
+    ) -> None:
+
+        edges1 = np.linspace(start1, end1, n1 + 1)
+        edges2 = np.linspace(start2, end2, n2 + 1)
+        Grid2D.__init__(self, edges1, edges2, lx)
