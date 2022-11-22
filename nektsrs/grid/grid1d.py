@@ -25,18 +25,14 @@ class Grid1D:
         self.gll = gll
 
     def element_edges(self, i: int):
-        """Get the edges of a particular element.
-
-        """
+        """Get the edges of a particular element."""
         if i < 0 or i > self.n - 1:
             raise ValueError(f"Element index {i} is out of bounds.")
 
         return self.edges[i], self.edges[i + 1]
 
     def element_gll_points(self, i: int):
-        """Get gll point of a particular element by its index.
-
-        """
+        """Get gll point of a particular element by its index."""
         if i < 0 or i > self.n - 1:
             raise ValueError(f"Element index {i} is out of bounds.")
 
@@ -44,9 +40,7 @@ class Grid1D:
         return self.gll[ind[0] : ind[1]]
 
     def element_gll_indices(self, i: int):
-        """Get the indces of the gll point of a particular element.
-
-        """
+        """Get the indces of the gll point of a particular element."""
         if i < 0 or i > self.n - 1:
             raise ValueError(f"Element index {i} is out of bounds.")
 

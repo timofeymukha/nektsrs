@@ -4,6 +4,27 @@ from numpy.testing import assert_array_almost_equal
 import numpy as np
 
 
+def test_simplegrid2d_edges():
+    g = SimpleGrid2D(0, 2, 0, 1, 5, 2, 4)
+    e1 = np.linspace(0, 2, 6)
+    e2 = np.linspace(0, 1, 3)
+    for i in range(g.n1):
+        for j in range(g.n2):
+            e = g.element_edges(i, j)
+            assert e[0] == e1[i]
+            assert e[1] == e1[i + 1]
+            assert e[2] == e2[j]
+            assert e[3] == e2[j + 1]
+
+
+def test_simplegrid2d_element_gll_points():
+    g = SimpleGrid2D(-1, 1, -1, 1, 1, 1, 4)
+    gll_ref, _ = gll(4)
+    p = g.element_gll_points(0, 0)
+    assert_array_almost_equal(p[0], gll_ref)
+    assert_array_almost_equal(p[1], gll_ref)
+
+
 def test_simplegrid2d():
     g = SimpleGrid2D(0, 2, 0, 1, 5, 3, 4)
     assert g.lx == 4
