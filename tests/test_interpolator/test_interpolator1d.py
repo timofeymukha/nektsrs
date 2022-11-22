@@ -9,8 +9,8 @@ def test_interpolator1d_element_edges():
     g = SimpleGrid1D(0, 1, 5, 4)
     intp = Interpolator1D(g)
 
-    assert_array_almost_equal(intp.element_edges(0), (0, 0.2))
-    assert_array_almost_equal(intp.element_edges(2), (0.4, 0.6))
+    assert_array_almost_equal(intp.grid.element_edges(0), (0, 0.2))
+    assert_array_almost_equal(intp.grid.element_edges(2), (0.4, 0.6))
 
 
 def test_interpolator1d_element_gll():
@@ -18,7 +18,7 @@ def test_interpolator1d_element_gll():
     intp = Interpolator1D(g)
 
     for i in range(intp.nelems - 1):
-        gll = intp.element_gll_points(i)
+        gll = intp.grid.element_gll_points(i)
         assert gll[0] == intp.edges[i]
         assert gll[-1] == intp.edges[i + 1]
 

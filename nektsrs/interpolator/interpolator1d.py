@@ -29,34 +29,12 @@ class Interpolator1D:
     def nelems(self):
         return self.grid.n
 
-    def element_edges(self, i: int):
-        if i < 0 or i > self.nelems - 1:
-            raise ValueError(f"Element index {i} is out of bounds.")
-
-        return self.edges[i], self.edges[i + 1]
-
-    def element_gll_points(self, i: int):
-        """Get gll point of a particular element by its index."""
-
-        if i < 0 or i > self.nelems - 1:
-            raise ValueError(f"Element index {i} is out of bounds.")
-
-        ind = self.element_gll_indices(i)
-        return self.gll[ind[0] : ind[1]]
-
-    def element_gll_indices(self, i: int):
-        if i < 0 or i > self.nelems - 1:
-            raise ValueError(f"Element index {i} is out of bounds.")
-
-        npoly = self.lx - 1
-        return i * npoly, i * npoly + self.lx
-
     def data_element_stats(self, data: np.ndarray) -> (np.ndarray, np.ndarray):
         """Data for normalizing the data within each element."""
         means = np.zeros(self.nelems)
         stds = np.zeros(self.nelems)
         for i in range(self.nelems):
-            ind = self.element_gll_indices(i)
+            ind = self.grid.element_gll_indices(i)
             means[i] = np.mean(data[ind[0] : ind[1]])
             stdi = np.std(data[ind[0] : ind[1]])
             stds[i] = stdi if stdi != 0 else 1.0
@@ -80,7 +58,7 @@ class Interpolator1D:
         """
         polys = dict()
         for i, eli in enumerate(element_ind):
-            ind = self.element_gll_indices(eli)
+            ind = self.grid.element_gll_indices(eli)
             polys[eli] = lagrange(
                 self.ref_gll,
                 (data[ind[0] : ind[1]] - data_means[eli]) / data_stds[eli],
@@ -128,7 +106,7 @@ class Interpolator1D:
         )
 
         for i, eli in enumerate(element_ind):
-            edges = self.element_edges(eli)
+            edges = self.grid.element_edges(eli)
             ref_p = (points[i] - edges[0]) / (edges[1] - edges[0]) * 2 - 1
             values[i] = polys[eli](ref_p) * data_stds[eli] + data_means[eli]
 
