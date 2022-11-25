@@ -1,5 +1,4 @@
 import numpy as np
-import h5py
 import glob
 from os.path import join
 from typing import Optional
@@ -9,6 +8,18 @@ __all__ = ["FileCombiner"]
 
 
 class FileCombiner:
+    """Combines several pts files into a single hdf5.
+
+    Assumes that all the pts files have a similar number of fields,
+    points, and have the same locations.
+
+    The datasets are sorted by write time prior to concatenation,
+    afterwards unique time-values are extracted using np.unique on
+    the concatenated time array. So, any duplicates are removed.
+
+    Note, reads all the data into memory!
+    """
+
     def __init__(self, basename: str, basepath: Optional[str] = "") -> None:
 
         search_string = join(
@@ -51,6 +62,8 @@ class FileCombiner:
 
     def save(self, filepath: str) -> None:
         """Save the data to an hdf5 file."""
+        import h5py
+
         f = h5py.File(filepath, "w")
         f.create_dataset("locs", data=self.locs)
         f.create_dataset("t", data=self.t)

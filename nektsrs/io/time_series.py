@@ -1,12 +1,21 @@
 import numpy as np
-import h5py
 import struct
 from typing import List
+from .helpers import read_int, read_real
 
 __all__ = ["TimeSeries"]
 
 
 class TimeSeries:
+    """Data from a single pts file.
+
+    Use the class method read() to read in the data.
+
+    The data field will be a list with data corresponding to each
+    point. Use the collate_data() method to collate that to a single
+    ndarray. Note: this has to be done prior to calling save()!
+    """
+
     def __init__(
         self,
         data: List,
@@ -30,31 +39,6 @@ class TimeSeries:
 
         self.locs = np.vstack([data[i].pos for i in range(self.npoints)])
         self.id_list = np.array([data[i].id for i in range(self.npoints)])
-
-    @staticmethod
-    def read_int(infile, emode: str, nvar: int) -> List[int]:
-        """Read an integer array."""
-        isize = 4
-        llist = infile.read(isize * nvar)
-        return list(struct.unpack(emode + nvar * "i", llist))
-
-    @staticmethod
-    def read_real(
-        infile,
-        emode: str,
-        wdsize: int,
-        nvar: int,
-    ) -> List[float]:
-        """Read a real array."""
-        if wdsize == 4:
-            realtype = "f"
-        elif wdsize == 8:
-            realtype = "d"
-        else:
-            raise ValueError
-
-        llist = infile.read(wdsize * nvar)
-        return np.frombuffer(llist, dtype=emode + realtype, count=nvar)
 
     @classmethod
     def read(cls, fname: str, sort: bool = True):
@@ -91,23 +75,23 @@ class TimeSeries:
         data = [Point(ldim, nt, nfields) for _ in range(npoints)]
 
         # read snapshot time list
-        timelist = TimeSeries.read_real(infile, emode, wdsizet, nt)
+        timelist = read_real(infile, emode, wdsizet, nt)
 
         # read global point number
         # NOTE: I convert to 0-based numbering
-        global_id_list = TimeSeries.read_int(infile, emode, npoints)
+        global_id_list = read_int(infile, emode, npoints)
         for i in range(npoints):
             data[i].id = global_id_list[i] - 1
 
         # read coordinates
         for i in range(npoints):
-            pos = TimeSeries.read_real(infile, emode, wdsizet, ldim)
+            pos = read_real(infile, emode, wdsizet, ldim)
             data[i].pos = pos
 
         # read fields
         for i in range(npoints):
             for j in range(nt):
-                fld = TimeSeries.read_real(infile, emode, wdsizef, nfields)
+                fld = read_real(infile, emode, wdsizef, nfields)
                 for k in range(nfields):
                     data[i].data[j][k] = fld[k]
 
@@ -121,6 +105,8 @@ class TimeSeries:
 
     def save(self, filepath: str) -> None:
         """Save the data to an hdf5 file."""
+        import h5py
+
         f = h5py.File(filepath, "w")
         f.create_dataset("locs", data=self.locs)
         f.create_dataset("t", data=self.t)

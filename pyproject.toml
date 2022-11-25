@@ -12,6 +12,10 @@ dependencies = [
     "pre-commit"
 ]
 
+[project.scripts]
+nektsrs_inspect = "nektsrs.bin.inspect:main"
+nektsrs_interpolate = "nektsrs.bin.interpolate:main"
+nektsrs_to_hdf5 = "nektsrs.bin.points_to_hdf5:main"
 
 [tool.black]
 line-length = 79
