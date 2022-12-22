@@ -26,7 +26,7 @@ def chunks_and_offsets(nprocs, size):
     # To ensure integer division later
     nprocs = int(nprocs)
 
-    if nprocs < 0 or nprocs >= size:
+    if nprocs < 0 or nprocs > size:
         raise ValueError("Number of processors is invalid", nprocs, size)
 
     chunks = np.zeros(nprocs, dtype=np.int64)

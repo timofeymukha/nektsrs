@@ -100,6 +100,8 @@ def main():
     f_time = f.create_dataset("t", (nt))
     f_data = f.create_dataset("data", (nt, data.shape[1], data.shape[2]))
 
+    print(rank, starts[rank], starts[rank] + t.size, t.size, nt, data.shape)
+
     f_time[starts[rank] : starts[rank] + t.size] = t
     f_data[starts[rank] : starts[rank] + t.size] = data
 
